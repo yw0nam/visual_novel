@@ -29,21 +29,42 @@ for i in tqdm(range(1, len(data)-1)):
     if data['name'].iloc[i] == data['name'].iloc[i+1] and len(context) <= max_context and (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) <= txt_index_lim:        
         texts += ' '
     elif data['name'].iloc[i] != data['name'].iloc[i+1] and len(context) <= max_context and (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) <= txt_index_lim:
-        context.append(data['name_spt'].iloc[i]+':'+texts)
+        context.append(data['name_spt'].iloc[i]+texts)
         texts = ""
     elif (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) > txt_index_lim:
         if len(context) != 0:
-            temp.append(['</s>'.join(context), data['name_spt'].iloc[i] + ':'+texts])
+            temp.append(['</s>'.join(context), data['name_spt'].iloc[i] +texts])
         context = []
         texts = ""
     elif len(context) > max_context:
-        temp.append(['</s>'.join(context), data['name_spt'].iloc[i] + ':'+texts])
+        temp.append(['</s>'.join(context), data['name_spt'].iloc[i] +texts])
         context = []
         texts = ""
 # %%
-temp.append(['</s>'.join(context), data['name_spt'].iloc[i+1] + ':'+data['text_remove_yomigana'].iloc[-1]])
+temp.append(['</s>'.join(context), data['name_spt'].iloc[i+1] +data['text_remove_yomigana'].iloc[-1]])
 # %%
 t = pd.DataFrame(temp, columns=['context', 'response'])
 # %%
 t.to_csv('./data/QA.context.tsv', sep='\t', index=False, header=None)
+# %%
+temp = []
+texts = ""
+prev_texts = None
+txt_index_lim = 4
+for i in tqdm(range(1, len(data)-1)):
+    texts += data['text_remove_yomigana'].iloc[i]
+    if data['name'].iloc[i] == data['name'].iloc[i+1] and (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) <= txt_index_lim:        
+        texts += ' '
+    elif data['name'].iloc[i] != data['name'].iloc[i+1] and (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) <= txt_index_lim:
+        if not prev_texts:
+            prev_texts = data['name_spt'].iloc[i]+texts
+        else:
+            temp.append([prev_texts, data['name_spt'].iloc[i] +texts])
+            prev_texts = data['name_spt'].iloc[i] +texts
+        texts = ""
+    elif (data['text_idx'].iloc[i+1] - data['text_idx'].iloc[i]) > txt_index_lim:
+        texts = ""
+        prev_texts = None
+# %%
+pd.DataFrame(temp).to_csv('./data/QA.long.tsv', sep='\t', index=False, header=None)
 # %%
