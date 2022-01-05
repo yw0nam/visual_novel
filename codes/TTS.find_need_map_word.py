@@ -15,9 +15,6 @@ data_voice['text'] = data_voice['text'].map(lambda x: re.sub(comp, '', x))
 # %%
 data_to_normalize = data_voice[data_voice['text'].map(lambda x: ']' in x)]
 # %%
-
-# %%
-# %%
 comp = re.compile("[[][ぁ-ゔァ-ヴ\sー]*[]]*")
 pronun_dicts = []
 for i in tqdm(range(len(data_to_normalize))):
@@ -56,11 +53,21 @@ for i in tqdm(range(len(data_to_normalize))):
 text = data_to_normalize['text'].iloc[i]
 t = pd.DataFrame(pronun_dicts)
 # %%
-t.to_excel('./temp.xlsx', index=False)
+df = pd.read_excel('./../data/temp_2.xlsx')
 
+df_non_chara = df.query("need_map == 'Y' and etc != 'Chara_name'")
+# %%
+df_non_chara = df_non_chara.drop_duplicates(subset='words')
+# %%
+df_non_chara = df_non_chara.drop(89)
+# %%
+# %%
 
+data_voice['normalized_text'] = data_voice['text'].map(lambda x: re.sub(comp, "", x))
 # %%
-data_voice[data_voice['text'].map(lambda x: '頭文字' in x)]
-# %%
-data_to_normalize.iloc[226]['text']
-# %%
+expr = re.compile("[[][ぁ-ゔァ-ヴ\sー]*[]]*")
+def remove_word_and_replace_pronun(text, expr=expr):
+    iter_obj = expr.finditer(text)
+    for obj in iter_obj:
+        
+# for i in tqdm(range(len(data_to_normalize))):
