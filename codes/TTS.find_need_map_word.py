@@ -10,7 +10,7 @@ data = pd.read_csv('/data1/spow12/datas/visual_novel/data.csv')
 # %%
 data_voice = data.dropna(subset=['voice'])
 data_voice = data_voice[data_voice['text'].map(lambda x: '[・]' not in x)]
-comp = re.compile("\u3000")
+comp = re.compile("\u3000|『|』")
 data_voice['text'] = data_voice['text'].map(lambda x: re.sub(comp, '', x))
 # %%
 data_to_normalize = data_voice[data_voice['text'].map(lambda x: ']' in x)]
@@ -78,22 +78,19 @@ data_voice['normalized_text'] = data_voice['text'].map(lambda x: remove_word_and
 # %%
 game_ls = ['SenrenBanka', 'RiddleJoker', 'CafeStella']
 # %%
-game_df = df_non_chara.query("game == @game_ls[0]")
+mapping_df_senren = df_non_chara.query("game == @game_ls[0]")
+mapping_df_Riddle = df_non_chara.query("game == @game_ls[1]")
+mapping_df_Cafe = df_non_chara.query("game == @game_ls[2]")
 # %%
 text = data_voice[data_voice['text'].map(lambda x: '叢雨丸' in x)].iloc[0]['text']
 # %%
-expr = '|'.join(game_df['words'].to_list())
+expr = '|'.join(mapping_df_senren['words'].to_list())
 comp = re.compile(expr)
 iter_obj = comp.finditer(text)
 # %%
+print(text)
+mapping_table = dict(zip(mapping_df_senren.words, mapping_df_senren.pronun))
 for obj in iter_obj:
-    print(obj[0])
-    
-# %%
-game_df.query("words == @obj[0]")['pronun'][0]
-# %%
-game_df['words'].to_list()
-# %%
-dict(zip(game_df.words, game_df.pronun))
-
+    text = text.replace(obj[0], mapping_table[obj[0]])
+print(text)
 # %%
