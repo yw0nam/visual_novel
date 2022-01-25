@@ -15,7 +15,7 @@ def main(config):
         os.mkdir(config.save_path)
     voice_pathes = glob(config.voice_path+'/*.ogg')
     for path in tqdm(voice_pathes):
-        command = ("ffmpeg -hide_banner -loglevel error -i {input_path} -b 768k -ac 1 -ar 48000 {output_path}.wav".format(input_path=path, output_path=os.path.join(config.save_path, os.path.basename(path).split('.')[0])))
+        command = ("ffmpeg -hide_banner -loglevel error -i {input_path} -b 768k -ac 1 -ar 22050 {output_path}.wav".format(input_path=path, output_path=os.path.join(config.save_path, os.path.basename(path).split('.')[0])))
         output = subprocess.call(command, shell=True, stdout=None)
             
 if __name__ == '__main__':

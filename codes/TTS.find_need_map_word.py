@@ -55,10 +55,10 @@ t = pd.DataFrame(pronun_dicts)
 # %%
 df = pd.read_excel('./../data/temp_2.xlsx')
 df_non_chara = df.query("need_map == 'Y' and etc != 'Chara_name'")
-# %%
+
 df_non_chara = df_non_chara.drop_duplicates(subset='words')
-# %%
 df_non_chara = df_non_chara.drop(89)
+df_chara_name = pd.read_excel('./../data/chara_names.xlsx')
 # %%
 def remove_word_and_replace_pronun(text):
     expr = re.compile("[[][ぁ-ゔァ-ヴ\sー]*[]]*")
@@ -72,25 +72,47 @@ def remove_word_and_replace_pronun(text):
     regx_remove_text = re.compile(expr)
     return re.sub(regx_remove_text, "",  text)
 
+def make_chara_mapping(df):
+    chara_dicts=dict()
+    df_chara = df.reset_index(drop=True)
+    for i in range(len(df_chara)):
+        chara_dicts[df_chara['First_name'].iloc[i]] = df_chara['First_name_pronun'].iloc[i]
+        if df_chara['Last_name_present'].iloc[i] == 'Y':
+            chara_dicts[df_chara['Last_name'].iloc[i]] = df_chara['Last_name_pronun'].iloc[i]
+    return chara_dicts
+
+def replace_proper_noun(text, comp):
+    iter_obj = comp.finditer(text)
+    match = comp.match(text)
+    if match:
+        for obj in iter_obj:
+            text = text.replace(obj[0], mapping_table[obj[0]])
+        return text
+    else:
+        return text
 # %%
 
 data_voice['normalized_text'] = data_voice['text'].map(lambda x: remove_word_and_replace_pronun(x))
 # %%
 game_ls = ['SenrenBanka', 'RiddleJoker', 'CafeStella']
+
 # %%
-mapping_df_senren = df_non_chara.query("game == @game_ls[0]")
-mapping_df_Riddle = df_non_chara.query("game == @game_ls[1]")
-mapping_df_Cafe = df_non_chara.query("game == @game_ls[2]")
+series = []
+for i in range(3):
+    df_game_word = df_non_chara.query("game == @game_ls[%d]"%(i))
+    df_game_chara = df_chara_name.query("game == @game_ls[%d]"%(i))
+    mapping_table_word = dict(zip(df_game_word.words, df_game_word.pronun))
+    mapping_table_chara = make_chara_mapping(df_game_chara)
+
+    map_keys = list(mapping_table_word.keys()) + list(mapping_table_chara.keys())
+    map_values = list(mapping_table_word.values()) + list(mapping_table_chara.values())
+    mapping_table = dict(zip(map_keys, map_values))
+    expr = '|'.join(map_keys)
+    comp = re.compile(expr)
+    series.append(data_voice.query("game_name == @game_ls[%d]"%(i))['normalized_text'].map(lambda x: replace_proper_noun(x, comp)))
+    
 # %%
-text = data_voice[data_voice['text'].map(lambda x: '叢雨丸' in x)].iloc[0]['text']
+data_voice['normalized_text'] = pd.concat(series)
 # %%
-expr = '|'.join(mapping_df_senren['words'].to_list())
-comp = re.compile(expr)
-iter_obj = comp.finditer(text)
-# %%
-print(text)
-mapping_table = dict(zip(mapping_df_senren.words, mapping_df_senren.pronun))
-for obj in iter_obj:
-    text = text.replace(obj[0], mapping_table[obj[0]])
-print(text)
+data_voice.to_csv('./../data/data_voice.csv', index=False)
 # %%
