@@ -6,28 +6,19 @@ from utils import make_chara_mapping, replace_noun
 # %%
 mode_a = tokenizer.Tokenizer.SplitMode.A
 tokenizer_obj = dictionary.Dictionary().create()
-data = pd.read_csv('../data/data_remove_wrongstrings_final.csv')
+data = pd.read_csv('../../data/data_remove_wrongstrings_final.csv')
 # %%
-df = pd.read_excel('../data/temp_2.xlsx')
+df = pd.read_excel('../../data/temp_2.xlsx')
 df_non_chara = df.query("need_map == 'Y' and etc != 'Chara_name'")
 
 df_non_chara = df_non_chara.drop_duplicates(subset='words')
 df_non_chara = df_non_chara.drop(91)
-df_chara_name = pd.read_excel('../data/chara_names.xlsx')
+df_chara_name = pd.read_excel('../../data/chara_names.xlsx')
 
 game_ls = ['SenrenBanka', 'RiddleJoker', 'CafeStella']
 # %%
 for i in range(3):
-    lexicon = {
-        "_": ":",
-        "??": ":",
-        "-": ":",
-        "?": ":",
-        # "?": ",",
-        # "?": ".",
-        # "?": ",",
-        "???": ":"
-    }
+    lexicon = {}
     map_keys = []
     map_values = []
     
@@ -47,5 +38,5 @@ for i in range(3):
         
     data['normalized_text'] = data.apply(lambda x: replace_noun(x['normalized_text'], lexicon, x['game_name'], game_ls[i]), axis=1)
 # %%
-data.to_csv('./../data/data.remove_wrongstrings.replace_noun.csv',index=False)
+data.to_csv('./../../data/data.remove_wrongstrings.replace_noun.csv',index=False)
 # %%

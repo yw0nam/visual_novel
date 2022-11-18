@@ -1,7 +1,8 @@
 # %%
-import os
+import os, re
 import numpy as np
 import pandas as pd
+import librosa
 from tqdm import tqdm
 from scipy.interpolate import interp1d
 import seaborn as sns
@@ -69,7 +70,13 @@ sns.displot(data=csv.query("game_name=='CafeStella'"),
 sns.displot(data=csv.query("game_name=='RiddleJoker'"),
             x='norm_pitch_mean', kind='kde', hue='name')
 # %%
-csv.query("norm_pitch_mean <= 1.6").to_csv(
-    './../../data/data.remove_wrongstrings.replace_noun.filter_only_dict.remove_high_pitch.csv', index=False)
+csv = csv.query("norm_pitch_mean <= 1.6")
+# %%
+csv['normalized_text'] = csv['normalized_text'].map(lambda x: re.sub('[()]', "", x))
+csv['duration'] = csv['path'].map(lambda x: librosa.get_duration(filename=x))
+csv = csv.query('duration >= 1.5 and duration <= 10')
+# %%
+csv.to_csv(
+    './../../data/data.remove_wrongstrings.replace_noun.filter_only_dict.remove_high_pitch.trim_dur.csv', index=False)
 
 # %%
