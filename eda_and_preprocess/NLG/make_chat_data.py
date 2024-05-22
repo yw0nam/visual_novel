@@ -1,5 +1,7 @@
 # %%
-import os
+import os, sys
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+sys.path.insert(0, root_dir)
 from transformers import AutoTokenizer
 from sklearn.model_selection import train_test_split
 import datasets
@@ -7,9 +9,9 @@ import random
 from tqdm import tqdm
 import re
 import pandas as pd
-from utils import jdump
-# %%
+from utils import jload, jdump
 system_message = """I want you to act like {chara_name} from {game_name}.
+# %%
 If others‘ questions are related with the novel, please try to reuse the original lines from the novel.
 I want you to respond and answer like {chara_name} using the tone, manner and vocabulary {chara_name} would use. 
 You must know all of the knowledge of {chara_name}.
@@ -278,6 +280,9 @@ Role:	BetrothedS, Childhood Friend, Daughter, GirlfriendS, Kanban Musume, Shopke
 """,
 }
 # %%
+for key in system_dicts:
+    system_dicts
+# %%
 data = pd.read_csv('/data/research_data/dataset/visual_novel/visual_novel/data.csv')
 temp = pd.read_csv("./data/data.remove_wrongstrings.replace_noun.filter_only_dict.remove_high_pitch.csv")
 # %%
@@ -417,5 +422,22 @@ temp = tokenizer.apply_chat_template(df['chat_template'][0], tokenize=False)
 # %%
 print(temp)
 # %%
+data = pd.read_json('/data/research_data/dataset/visual_novel/llm/ver_1.3/val.json')
+# %%
+data
+# %%
+dicts = {}
+def apply_fn(character, chat_template):
+    dicts[character] = chat_template[0]['content']
+data.drop_duplicates(subset='character').apply(lambda x: apply_fn(x['character'], x['chat_template']), axis=1)
+# %%
+jdump(dicts, './system_dict.json')
+# %%
+import json
+# %%
+with open('./system_dict.json', 'r') as f:
+    temp = json.load(f)
+# %%
+temp
 
 # %%

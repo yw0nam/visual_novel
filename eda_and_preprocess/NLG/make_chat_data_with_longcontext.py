@@ -7,7 +7,7 @@ import random
 from tqdm import tqdm
 import re
 import pandas as pd
-from utils import jdump
+# from utils import jdump
 # %%
 system_message = """I want you to act like {chara_name} from {game_name}.
 If others‘ questions are related with the novel, please try to reuse the original lines from the novel.
