@@ -31,12 +31,39 @@ temp = data['name'].value_counts()[3:]
 name_ls = temp[temp > 1500].index.to_list()
 # %%
 data['name'] = data['name'].replace({'昂晴': 'ユーザー', '暁': 'ユーザー', '将臣': 'ユーザー'})
-data['name'] = data['name'].fillna('')
+data['name'] = data['name'].fillna('ユーザー')
 # %%
 min_context_window = 10
 max_context_window = 25
 out_ls = []
 index = 0
+# %%
+
+grouped = data.groupby(['scene_name', 'game_name'])
+# %%
+out = []
+def apply_fn(name, text_remove_yomigana, dialog_type):
+    text = ""
+    if dialog_type == 'monologue':
+        text += text_remove_yomigana
+    else:
+        text += f"{name}:" + text_remove_yomigana + '\n'
+    return text
+for name, group in grouped:
+    idx = 0
+    while idx < len(group):
+        context_size = random.randint(min_context_window, max_context_window)
+        temp_df = group[idx:idx+context_size]
+        temp_df['mapped_text'] = temp_df.apply(lambda x: apply_fn(x['name'], x['text_remove_yomigana'], x['dialog_type']), axis=1)
+        mapped_text = '\n'.join(temp_df['mapped_text'].to_list())
+        out.append({
+            'mapped_text': mapped_text,
+            'characters': list(temp_df.name.unique()),
+            'game_name': temp_df['game_name'].iloc[0]
+        })
+        idx += context_size
+    break
+# %%
 while index < len(data):
     out = []
     context_size = random.randint(min_context_window, max_context_window)
