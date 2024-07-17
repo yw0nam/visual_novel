@@ -9,6 +9,7 @@ import re
 import pandas as pd
 from  matplotlib import pyplot as plt
 from utils import jdump, jload
+import numpy as np
 # %%
 system_dict = jload('./data/system_dict_updated.json')
 system_message = """This is an RP (roleplay) chat. Our characters could come from all sorts of places--like movies, video games, books, or even anime. Make sure that you follow all my instructions and setup, based on the details to follow
@@ -60,6 +61,23 @@ for name, group in tqdm(grouped):
         })
         idx += context_size
 # %%
-out[0]    
+out[0]
 # %%
-df = pd.DataFrame(out_ls)
+df = pd.DataFrame(out)
+# %%
+masked_ls = []
+texts = out[0]['mapped_text']
+mask_ = np.random.choice([0, 1], size=len(texts), p=[0.75, 0.25])
+# %%
+for text, mask in zip(texts, mask_):
+    if mask:
+        if ':' in text:
+            index = text.find(':')
+            masked_ls.append(text[:index+1] +'[MASK]')
+        else:
+            masked_ls.append('[MASK]')
+    else:
+        masked_ls.append(text)        
+# %%
+masked_ls
+# %%
